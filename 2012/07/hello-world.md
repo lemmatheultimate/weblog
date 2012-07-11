@@ -1,1 +1,3 @@
 # Hello World
+
+Given that it's the summer, I've been up to no good reading and thinking, and have some ideas I'd like to blog about. Choosing a blog engine can be a stressful affair, so rather than worry I set up this little area of plentiful scratch paper. Please see the [README](https://github.com/lemmatheultimate/weblog/blob/master/README.md) for the idea behind this blog. I'll keep this post short, there's real content to be written :D
