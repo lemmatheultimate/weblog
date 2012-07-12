@@ -86,7 +86,7 @@ Another [un]intended side effect is that once such a bijection between types and
 
 ### Technical Digression
 
-As a minor technical detail, we will change notation from `El` (element of the universe) as our interpretation function to the more familiar semantics brackets `⟦_⟧`. The real motivation behind this is to prevent the functional definition of `El` from expanding (in places we don't want it to, like when appealing to an inductive hypothesis via recursion) as we pattern match on its domain. This is accomplished by hiding our functional definition inside of a concrete data type with a single constructor. Also of note is mutually defining this new type, so that `El` may recurse with it (yet another method to make inductive steps of proofs go through more elegantly).
+As a minor technical detail, we will change notation from `El` (element of the universe) as our interpretation function to the more familiar semantics brackets `⟦_⟧`. The real motivation behind this is to prevent the functional definition of `El` from expanding (in places we don't want it to, like when appealing to an inductive hypothesis via recursion) as we pattern match on its domain. This is accomplished by hiding our functional definition inside of a concrete data type with a single constructor. Also of note is mutually defining this new type, so that `El` may recurse with it (yet another method to make inductive steps of proofs go through more elegantly). Also please excuse my omission of `→`, everything still works when it is included but I don't have the proof cases for it that appear later in the post.
 
 ```haskell
 El : ∀ {n} → Type n → Set
@@ -106,8 +106,8 @@ data ⟦_⟧ {n} F where
 ```haskell
 postulate
   inject+ : ∀ {m} n → Fin m → Fin (m + n)
-  raise     : ∀ {m} n → Fin m → Fin (n + m)
-  concat  : ∀ {m n} → Fin m → Fin n → Fin (m * n)
+  raise : ∀ {m} n → Fin m → Fin (n + m)
+  concat : ∀ {m n} → Fin m → Fin n → Fin (m * n)
 
 toFin : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
 toFin {F = `⊥} [ () ]
@@ -135,6 +135,60 @@ inject (S `× T) i with split i
 ```
 
 Now going in the other direction, if we have a finite set element and a code for the type/shape we would like it to become, we can inject the element into the expected value. At this point I should mention that the traversal order of our tree-structured types that the isomorphic `toFin` and `inject` follow is arbitrary, and there are in fact several other isomorphisms we could choose to go through. The special thing about this isomorphism, is that it corresponds nicely with the pattern matching structure of other definitions (e.g. `+`, `*`, etc), so we get prettier proofs. The `case` and `split` functions are analogous to the previously seen `inject+`/`raise` and `concat`, merely in the other direction.
+
+```haskell
+lift : ∀ {m n} {S T : Type m} {U V : Type n} →
+  (⟦ S ⟧ → ⟦ U ⟧) → ⟦ T ⟧ → ⟦ V ⟧
+lift {m} {n} {S} {T} {U} {V} f t =
+  inject V (toFin (f (inject S (toFin t))))
+
+coerce : ∀ {n} {S T : Type n} → ⟦ S ⟧ → ⟦ T ⟧
+coerce {S = S} s = lift (id {A = ⟦ S ⟧}) s
+```
+
+The magnificent moment has arrived, our desired `coerce` function! Coercion is in fact a special case of a more general definition that `lift`s functions with a different domain and codomain to functions defined on different types but whose cardinalities respectively match the original function. In particular, the special case is the lifting of the identity function `id`. `lift` uses our previously defined functions to `toFin` out of old types and `inject` into the desired new types.
+
+## Proof
+
+Now that we have a coercion function, it remains to be shown that its components `toFin` and `inject` are in fact mutually inverse. Below we will give the proof of one direction of the bijection law we wish to see hold.
+
+```haskell
+postulate
+  case-raise : ∀ {n} m → (i : Fin n) → case {m = m} (raise m i) ≡ inj₂ i
+  case-inject : ∀ {m} n → (i : Fin m) → case (inject+ n i) ≡ inj₁ i
+  split-concat : ∀ {m} {n} → (i : Fin m) (j : Fin n) → split (concat i j) ≡ (i , j)
+
+bijection₁ : ∀ {n} {S : Type n} (s : ⟦ S ⟧) → inject S (toFin s) ≡ s
+bijection₁ {S = `⊥} [ () ]
+bijection₁ {S = `⊤} [ tt ] = refl
+bijection₁ {S = _`⊎_ {n = n} S T} [ inj₁ a ]
+  with case-inject n (toFin a) | bijection₁ a
+... | p | ih rewrite p | ih = refl
+bijection₁ {S = _`⊎_ {m = m} S T} [ inj₂ b ]
+  with case-raise m (toFin b) | bijection₁ b
+... | p | ih rewrite p | ih = refl
+bijection₁ {S = S `× T} [ (a , b) ]
+  with split-concat (toFin a) (toFin b) | bijection₁ a | bijection₁ b
+... | p | ih₁ | ih₂ rewrite p | ih₁ | ih₂ = refl
+```
+Thanks to our lemmas and careful attention to which definitions we pattern match on across several definitions, the `bijection₁` proof is reasonably tame. The proofs of the lemmas are also inductive and quite tidy.
+
+## Deriving
+
+We started this post with the connection to `deriving` generic functions as in Haskell, and now we are here at last. The `coerce` function that we already have corresponds to what you might call something like deriving `Iso` in a language limited to finte types.
+
+```haskell
+_≟_ : ∀ {n} {F : Type n} → Decidable {A = ⟦ F ⟧} _≡_
+_≟_ {F = F} x y  with toFin x ≟f toFin y
+... | no p = no (p ∘ cong toFin)
+... | yes p with bijection₁ x | bijection₁ y | cong (inject F) p
+... | a | b | c rewrite a | b = yes c
+
+enum : ∀ {n} (F : Type n) → Vec ⟦ F ⟧ n
+enum = tabulate ∘ inject
+```
+
+`≟` and `enum` correspond to deriving `Eq` and `Enum`. An equivalent for deriving `Ord` via making use of the function `compare` would be a bit more involved because it return an `Ordering` type defined on `Fin`'s, and I haven't gotten around to attempting it yet. However, do notice that our `≟` gives us a proof of equality (rather than a boolean predicate), `enum` is assured to give us a vector of values whose length match the number of inhabitants, and `Ord` would give us back a proof of why something is `less`, `equal`, or `greater` (just like the already defined `Fin` version in the Agda standard library).
 
 ### TODOS
 * expand to dependent types
