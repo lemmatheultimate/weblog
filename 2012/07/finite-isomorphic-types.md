@@ -10,7 +10,7 @@ The interesting bit is that at least in this finite universe (no type recursion 
 
 ### The Meat
 
-Now that we know that the isomorphisms described exist, we would like to have a constructive method for converting between values of isomorphic types. Let us start by recapping the finite universe of types that we are working with.
+Now that we know that the isomorphisms described exist, we would like to have a constructive method for converting between values of isomorphic types. Let us start by recapping the finite universe of types that we are working with. The convention that we will be using for type codes is prefixing them with a backtick, for example the code for unit is ``⊤` while its interpretation is `⊤` (no backtick present).
 
 ```haskell
 data Type : Set where
@@ -25,11 +25,23 @@ El (S `× T) = El S × El T
 El (S `→ T) = El S → El T
 ```
 
-Note that we have also added a `→` (function type), which corresponds with `^` (exponentiation).
+Note that we have also added a `→` (function type), which corresponds with `^` (exponentiation). Using this, another example of an isomorphism is `Three × Three` & `Two → Three` (where constants like `Two` are just shorthand for `⊤ ⊎ ⊤`, etc.) This is because `Three × Three` evaluates as `3 * 3` and `Two → Three` as `3^2`, which both normalize to `9`.
+
+Not surprisingly, we can define a function to `count` the number of inhabitants of a type.
+
+```haskell
+count : Type → ℕ
+count `⊥ = 0
+count `⊤ = 1
+count (S `⊎ T) = count S + count T
+count (S `× T) = count S * count T
+count (S `→ T) = count T ^ count S
+```
+
+What we are really after is a static method for knowing when two given types are isomorphic, so we can write a total function that converts values between the types. The static "equality" will then act as a parameter to our coercion function whose "proof" we can use to restrict our definition to only the necessary isomorphic type cases.
 
 ### TODOS
 * denotational semantics type style
-* expand to functions/exponentials
 * expand to dependencies
 * link to copumpinks stackoverflow answer
 * isomorphic types + curry howard = proofs 
