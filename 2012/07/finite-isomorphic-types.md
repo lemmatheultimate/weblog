@@ -40,8 +40,43 @@ count (S `→ T) = count T ^ count S
 
 What we are really after is a static method for knowing when two given types are isomorphic, so we can write a total function that converts values between the types. The static "equality" will then act as a parameter to our coercion function whose "proof" we can use to restrict our definition to only the necessary isomorphic type cases.
 
+A first attempt to define such a function might be as follows:
+
+```haskell
+coerce : {S T : Type} → El S → count S ≡ count T → El T
+```
+
+Or similarly using a more structurally defined equivalence relation:
+
+```haskell
+coerce : {S T : Type} → El S → S ≈ T → El T
+```
+
+While either of these examples would work, requiring an extra explicit proof parameter feels like a burden and not in the spirit of correct-by-construction programming. When writing proofs / total functions in a language like Agda, you tend to get simpler definitions when implicitly enforcing equality constraints by reusing type dependent variables in a type signature. Plus, we started out with such a beautiful denotational semantics, why ruin it with post-hoc reasoning? What we really want is a type signature like this:
+
+```haskell
+coerce : {n : ℕ} {S T : Type n} → El S → El T
+```
+
+Here a single natural number `n : ℕ` is implicitly shared between two codes of a family of types indexed by the natural numbers. As a result a separate explicit proof need not be supplied. How do we write such a type? We merely encode our `count` function into our previous denotational semantics.
+
+```haskell
+data Type : ℕ → Set where
+  `⊥ : Type 0
+  `⊤ : Type 1
+  _`⊎_ : ∀ {m n} (S : Type m) (T : Type n) → Type (m + n)
+  _`×_ : ∀ {m n} (S : Type m) (T : Type n) → Type (m * n)
+  _`→_ : ∀ {m n} (S : Type m) (T : Type n) → Type (n ^ m)
+
+El : ∀ {n} → Type n → Set
+El `⊥ = ⊥
+El `⊤ = ⊤
+El (S `⊎ T) = El S ⊎ El T
+El (S `× T) = El S × El T
+El (S `→ T) = El S → El T
+```
+
 ### TODOS
-* denotational semantics type style
 * expand to dependencies
 * link to copumpinks stackoverflow answer
 * isomorphic types + curry howard = proofs 
