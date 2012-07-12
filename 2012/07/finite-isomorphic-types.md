@@ -78,6 +78,12 @@ El (S `× T) = El S × El T
 El (S `→ T) = El S → El T
 ```
 
+## Type Coercion
+
+Now that we have a good looking type, we should begin thinking about how we will provably cross the chasm between two isomorphic types. As mentioned earlier, isomorphism occurs when it exists between objects in the category of sets. We can use this as inspiration for our plan to convert values. Namely, we will have one function that injects values of `Type n` into their corresponding `Fin n` (the type of finite sets), and another function which brings a `Fin n` back to the world of `Type n`'s. It's worth noting that when writing these functions we get to reuse the technique of sharing our implicit `n` in the type signature without any other explicit proof that a `Type` and `Fin` are somehow related.
+
+Another [un]intended side effect is that once such a bijection between types and finite sets has been established, we can reuse any (and there are many) functions previously defined for `Fin`!
+
 ### TODOS
 * expand to dependencies
 * link to copumpinks stackoverflow answer
