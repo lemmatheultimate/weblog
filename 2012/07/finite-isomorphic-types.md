@@ -27,7 +27,7 @@ El (S `× T) = El S × El T
 El (S `→ T) = El S → El T
 ```
 
-Note that we have also added a `→` (function type), which corresponds to `^` (exponentiation). Using this, another example of an isomorphism is `Three × Three` & `Two → Three` (where constants like `Two` are just shorthand for `⊤ ⊎ ⊤`, etc.) This is because `Three × Three` evaluates as `3 * 3` and `Two → Three` as `3^2`, which both normalize to `9`.
+Note that I have also added a `→` (function type), which corresponds to `^` (exponentiation). Using this, another example of an isomorphism is `Three × Three` & `Two → Three` (where constants like `Two` are just shorthand for `⊤ ⊎ ⊤`, etc.) This is because `Three × Three` evaluates as `3 * 3` and `Two → Three` as `3^2`, which both normalize to `9`.
 
 Not surprisingly, we can define a function to `count` the number of inhabitants of a type.
 
@@ -80,7 +80,7 @@ El (S `→ T) = El S → El T
 
 ## Type Coercion
 
-Now that we have a good looking type, we should begin thinking about how we will provably cross the chasm between two isomorphic types. As mentioned earlier, isomorphism occurs when it exists between objects in the category of sets. We can use this as inspiration for our plan to convert values. Namely, we will have one function that injects values of `Type n` into their corresponding `Fin n` (the type of finite sets), and another function which brings a `Fin n` back to the world of `Type n`'s. It's worth noting that when writing these functions we get to reuse the technique of sharing our implicit `n` in the type signature without any other explicit proof that a `Type` and `Fin` are somehow related.
+Now that we have a good looking type, we should begin thinking about how to provably cross the chasm between two isomorphic types. As mentioned earlier, isomorphism occurs when it exists between objects in the category of sets. We can use this as inspiration for our plan to convert values. Namely, we will have one function that injects values of `Type n` into their corresponding `Fin n` (the type of finite sets), and another function which brings a `Fin n` back to the world of `Type n`'s. It's worth noting that when writing these functions we get to reuse the technique of sharing our implicit `n` in the type signature without any other explicit proof that a `Type` and `Fin` are somehow related.
 
 Another [un]intended side effect is that once such a bijection between types and finite sets has been established, we can reuse any (and there are many) functions previously defined for `Fin`! For example, equality of finite sets, enumeration of all possible values in a finite set, orderings between finite sets... essentially our familiar `Eq`, `Enum`, and `Ord`deriving mechanisms from Haskell but defined in user land and accompanied by proofs. This means by the end of our journey we will have for `Type` the deriving functions `Iso`, `Eq`, `Enum`, `Ord` and more (where more is whatever you are capable of defining)!
 
@@ -192,13 +192,80 @@ enum = tabulate ∘ inject
 
 ## Dependent Types
 
-Viewing type isomorphisms in the setting above can be an educational way to see the connection to what is meant by "algebraic data types". However, when extended to dependent types I dare say it may be useful. Since dependent types can represent arbitrary constructive logical propositions (as per the Curry-Howard Isomorphism), a function like `coerce` amounts to a procedure to convert a _proof_ of one logical proposition to a proof of _another isomorphic_ logical proposition. Since (at least in the finite system presented here) type isomorphism gets calculated along with terms at compile time, one cool application would be making a type system or tactic system consider values of isomorphic types in the context when searching for proof inhabitance. Further, under the Curry-Howard lens one proof is as good as another, so which isomorphism we happen to use doesn't matter as much (whereas with non-dependent types we care much more about what values look like when passing through a given isomorphism bridge).
+Viewing type isomorphisms in the setting above can be an educational way to see the connection to what is meant by "algebraic data types". However, when extended to dependent types I dare say it may be useful. Since dependent types can represent arbitrary constructive logical propositions (as per the Curry-Howard Isomorphism), a function like `coerce` amounts to a procedure to convert a _proof_ of one logical proposition to a proof of _another isomorphic_ logical proposition. Since (at least in the finite system presented here) type isomorphism gets calculated along with terms at compile time, one cool application would be making a type system or tactic system consider values of isomorphic types in the context when searching for proof inhabitance. Further, under the Curry-Howard lens one proof is as good as another (proof irrelevance), so which isomorphism we happen to use doesn't matter as much (whereas with non-dependent types we care much more about what values look like when passing through a given isomorphism bridge).
 
-Dependent pairs (`Σ`) and dependent functions (`Π`) may be understood as "big sum" and "big product" as seen in algebra. When you multiply two number like `2 * 3` you can think of it as `fold` of `+` (`sum`) over a homogenous list of twos of length three, i.e. `sum (2 ∷ 2 ∷ 2 ∷ []) ≡ 2 + 2 + 2`. Similarly, exponentiation like `2 ^ 3` can be interpreted as iterated multiplication (rather than addition), i.e. `product (2 ∷ 2 ∷ 2 ∷ []) ≡ 2 * 2 * 2`. Dependent types abstract out a function that may be applied to each element of a heterogeneous list of values. For example, you may remember expressions in math classes like `Σ i^2 as i goes from 0 to 3`. Here the function `λ i → i ^ 3` is the parameter and being sum'd across the list `0, 1, 2, 3`.
+Dependent pairs (`Σ`) and dependent functions (`Π`) may be understood as "big sum" and "big product" from algebra. When you multiply two number like `2 * 3` you can think of it as a `fold` of `+` (`sum`) over a homogenous list of two's of length three, i.e. `sum (2 ∷ 2 ∷ 2 ∷ []) ≡ 2 + 2 + 2`. Similarly, exponentiation like `2 ^ 3` can be interpreted as iterated multiplication (rather than addition), i.e. `product (2 ∷ 2 ∷ 2 ∷ []) ≡ 2 * 2 * 2`. Dependent types abstract out a function that may be applied to each element of a heterogeneous list of values. For example, you may remember informal expressions in math classes like `Σ i*i as i goes from 0 to 3`. Here the function `λ i → i * i` is the parameter and being sum'd across the list `0, 1, 2, 3`, resulting in `0 + 1 + 4 + 9`. For more of an intro to these concepts, [@copumpkin](https://github.com/copumpkin) has written a nice [stackoverflow answer](http://stackoverflow.com/questions/10453558/algebraically-interpreting-polymorphism/10456993#10456993) on the topic.
+
+```haskell
+∣Σ∣ : ∀ {n} {A : Set} → Vec A n → (A → ℕ) → ℕ
+∣Σ∣ [] f = zero
+∣Σ∣ (x ∷ xs) f = f x + ∣Σ∣ xs f
+
+∣Π∣ : ∀ {n} {A : Set} → Vec A n → (A → ℕ) → ℕ
+∣Π∣ [] f = zero
+∣Π∣ (x ∷ xs) f = f x * ∣Π∣ xs f
+
+data Type : Set
+El : Type → Set
+
+data Type where
+  `⊥ `⊤ : Type
+  _`⊎_ _`×_ _`→_ : (S T : Type) → Type
+  `Σ `Π : (S : Type)(T : El S → Type) → Type
+
+El `⊥ = ⊥
+El `⊤ = ⊤
+El (S `⊎ T) = El S ⊎ El T
+El (S `× T) = El S × El T 
+El (S `→ T) = El S → El T 
+El (`Σ S T) = Σ (El S) λ s → El (T s)
+El (`Π S T) = (s : El S) → El (T s)
+
+count : Type → ℕ
+postulate enum : (R : Type) → Vec (El R) (count R)
+
+count `⊥ = 0
+count `⊤ = 1
+count (S `⊎ T) = count S + count T
+count (S `× T) = count S * count T
+count (S `→ T) = count T ^ count S
+count (`Σ S T) = ∣Σ∣ (enum S) (λ s → count (T s))
+count (`Π S T) = ∣Π∣ (enum S) (λ s → count (T s))
+```
+
+First off, let me add the disclaimer that I have only defined enum for the above in the [completed source](http://todo.com) for `Σ` (I've defined the case for `→` in a separate universe, and have not defined it yet for `Π`). Secondly, as I was working on this development I reverted to defining `count` explicitly rather than implicitly in the type family. There are less mutually defined definitions that way (such as `enum`, and `toFin` in the `→` universe), but I hope that converting everything back to the type family form would still work in the end.
+
+The reason why we need the `enum` function is because the dependent constructor argument `(T : El S → Type)` sits behind a λ abstraction barrier. We cannot simply "count T", as the `T` _function_ may return a type of _different cardinality_ for every possible `S` it may analyze. While the `Σ` example above from mathematics used a uniform/parametric function `λ i → i * i`, it could have in fact analyzed every `i` and returned a different answer for each. In fact as I define the (domain restricted) `square` function in our formal language below a non-uniform definition is demonstrated.
+
+```haskell
+`square : El `four → Type
+`square (inj₁ tt) = `⊥ `× `⊥
+`square (inj₂ (inj₁ tt)) = `⊤ `× `⊤
+`square (inj₂ (inj₂ (inj₁ tt))) = `two `× `two
+`square (inj₂ (inj₂ (inj₂ tt))) = `three `× `three
+
+`sum-of-squares : Type
+`sum-of-squares = `Σ `four `square
+```
+
+Note the difference between the dependent function `square`, and one concrete type instantiation of it `sum-of-squares`.  In this formalization all dependent types are defined in the computational/functional form, rather than the more familiar data-typical form (i.e. using the keyword `data` in a language like Agda). Nevertheless, logical propositions can be represented this way just as well. Consider for example the predicate `even` for numbers.
+
+```haskell
+`even : El `four → Type
+`even (inj₁ tt) = `⊤
+`even (inj₂ (inj₁ tt)) = `⊥
+`even (inj₂ (inj₂ (inj₁ tt))) = `⊤
+`even (inj₂ (inj₂ (inj₂ tt))) = `⊥
+
+`∃even : Type
+`∃even = `Σ `four `even
+```
+
+Here each case is to be understood to mean the number of inhabitants for that particular value. In other words "zero" has one proof of even, "one" has none, "two" has one, and "three" has none. When looking at dependent types from this logical angle, the instantiation of `even` under `Σ` represents the logical proposition that "there exists" an even number in the domain 0-3. Further, the `count` function would tell us there are in fact two such proofs (1 + 0 + 1 + 0). If we counted the inhabitants of the proposition ``Π `four `even` we would get 0, because multiplying by a zero annihilates the whole term. This makes perfect sense, as all numbers are _not_ even.
 
 ### TODOS
 * canonicity
+* link to `→` universe
 * mention W types up to a bound like depth n (same universe as OTT paper)
-* link to copumpinks stackoverflow answer
-* link to type-isomorphisms repo
+* link to type-isomorphisms repo or html/agda included source
 * compare implicit approach to semiring solver + reflection
