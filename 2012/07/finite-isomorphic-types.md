@@ -261,11 +261,67 @@ Note the difference between the dependent function `square`, and one concrete ty
 `∃even = `Σ `four `even
 ```
 
-Here each case is to be understood to mean the number of inhabitants for that particular value. In other words "zero" has one proof of even, "one" has none, "two" has one, and "three" has none. When looking at dependent types from this logical angle, the instantiation of `even` under `Σ` represents the logical proposition that "there exists" an even number in the domain 0-3. Further, the `count` function would tell us there are in fact two such proofs (1 + 0 + 1 + 0). If we counted the inhabitants of the proposition ``Π `four `even` we would get 0, because multiplying by a zero annihilates the whole term. This makes perfect sense, as all numbers are _not_ even.
+Here each case is to be understood to mean the number of inhabitants for that particular value. In other words "zero" has one proof of even, "one" has none, "two" has one, and "three" has none. When looking at dependent types from this logical angle, the instantiation of `even` under `Σ` represents the logical proposition that "there exists" an even number in the domain 0-3. Further, the `count` function would tell us there are in fact two such proofs (1 + 0 + 1 + 0). If we counted the inhabitants of the proposition `Π four even` we would get 0, because multiplying by a zero annihilates the whole term. This makes perfect sense, as all numbers are _not_ even.
+
+A cute use of `coerce` in this setting would be to get a value of `∃odd` from a `∃even`, as both propositions have two inhabitants. In a more interesting universe not limited to finite types, an isomorphism between all `odd` and `even` proofs would exist and be much more interesting.
+
+## Inductive Definitions
+
+Adding μ as defined in Conor's Reddit comment at the beginning of the article to this universe leads to positivity issues. However, W-types (an alternate way to get recursive types as seen in Martin-Löf's Type Theory) fit in quite neatly.
+
+```haskell
+data W (S : Set) (T : S → Set) : Set where
+  _,_ : (s : S) → (T s → W S T) → W S T
+
+data Type : Set
+El : Type → Set
+
+data Type where
+  `⊥ `⊤ : Type
+  _`⊎_ _`×_ : (S T : Type) → Type
+  _`→_ : (S T : Type) → Type
+  `Σ : (S : Type)(T : El S → Type) → Type
+  `Π : (S : Type)(T : El S → Type) → Type
+  `W : (S : Type)(T : El S → Type) → Type
+
+El `⊥ = ⊥
+El `⊤ = ⊤
+El (S `⊎ T) = El S ⊎ El T
+El (S `× T) = El S × El T
+El (S `→ T) = El S → El T
+El (`Σ S T) = Σ (El S) λ s → El (T s)
+El (`Π S T) = (s : El S) → El (T s)
+El (`W S T) = W (El S) λ s → El (T s)
+```
+
+At this point our (non-indexed) universe looks very much like what appears in Thorsten Altenkirch's and Conor McBride's [OTT paper](http://strictlypositive.org/ott.pdf) (indeed a brief scan of this paper inspired some this work as well). Trying to tackle the problem of isomorphisms in a universe of infinite types is beyond the scope of this post (I don't know if a total `coerce` for every iso even exists, but even just getting some of these would be useful). However, one could limit W-types to some finite bound such as all inhabitants up to some given depth. The advantage would be the ability to use _inductive definitions_ for types and propositions (e.g. `ℕ` or `even`), rather than the more verbose form of exhaustively specifying every case. However, I have not yet experimented very much in this area.
+
+## Adieu
+
+I hope to have at least wet your appetite to the fun that can be had with constructively definable isomorphisms between types. Even though we have only dealt with a finite universe, when `Σ`, `Π`, and something like `FinW` are added I think it becomes a fairly interesting universe to play in. The denotational semantics as a family of types indexed by the naturals also seems like a simple and modular way to discover, and _simply_ prove things about, finite isomorphic types. I think that this implicit style relying on canonicity is more elegant than the explicit approach of a separate proof object (and at the very least a more pragmatic way to get simpler proofs).
+
+## Future Work
+
+The obvious next steps are to explore the more interesting world of infinite types. I've started trying to expand the semiring type index `ℕ`to formally expressed polynomials in any number of variables `List (List ℕ)` (where list positions correspond to coefficients). It obviously does not capture all isomorphisms. For example (using just polynomials in one variable `List ℕ`), `μX. ⊤ ⊎ X` & `μX. ⊤ ⊎ ⊤ ⊎ X` become `1 ∷ 1 ∷ []` & `2 ∷ 1 ∷ []` respectively. However, isomorphisms for types due to basic properties such as associativity, symmetry, etc remain, e.g. `μX. ⊤ ⊎ X` & `μX. X ⊎ ⊤` both become `1 ∷ 1 ∷ []`... so it may be worth exploring a bit nonetheless.
+
+After doing a little bit of surveying I've found the more serious attempts at cracking the type isomorphism problem listed below:
+
+* [From High School to University Algebra - Thorsten Altenkirch](http://www.cs.nott.ac.uk/~txa/publ/unialg.pdf)
+  * Extends Tarski's mathematical properties work to Dependent Types.
+* [Isomorphisms on inductive types - Thorsten Altenkirch](http://www.cs.nott.ac.uk/~txa/talks/isos05.pdf)
+  * Contains an interesting statement of when two non-parametric types are isomorphic.
+* [Isomorphisms of Generic Recursive Polynomial Types - Marcelo Fiore](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.129.2549&rep=rep1&type=pdf)
+  * A decision procedure for certain recursive non-dependent type isomorphisms.
+* [Reason Isomorphically! - Ralf Hinze & Daniel W. H. James](http://www.cs.ox.ac.uk/ralf.hinze/publications/WGP10.pdf)
+  * An existence argument (rather than constructive method) for isomorphic types based on indirect relationships between types via the Yoneda Lemma.
+* [Isomorphism of Finitary Inductive Types - Christian Sattler](http://www.cs.nott.ac.uk/~cvs/iso-inductive-talk.pdf)
+  * New and interesting work towards deciding isormophism based on the Power Series representation of types.
+
+----------------------------------------------------------------------
+
+That's it for now, this was a post in a new experiment in collaborative formal methods / FP blogging. You can read more about it at [lemmatheultimate.com](http://lemmatheultimate.com). I hope for my own sanity that my future posts are not this long, so please do not be intimated from writing much smaller and free spirited entries.
 
 ### TODOS
-* canonicity
 * link to `→` universe
-* mention W types up to a bound like depth n (same universe as OTT paper)
 * link to type-isomorphisms repo or html/agda included source
-* compare implicit approach to semiring solver + reflection
+
