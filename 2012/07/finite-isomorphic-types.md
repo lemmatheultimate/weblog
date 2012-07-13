@@ -139,8 +139,8 @@ Now going in the other direction, if we have a finite set element and a code for
 ```haskell
 lift : ∀ {m n} {S T : Type m} {U V : Type n} →
   (⟦ S ⟧ → ⟦ U ⟧) → ⟦ T ⟧ → ⟦ V ⟧
-lift {m} {n} {S} {T} {U} {V} f t =
-  inject V (toFin (f (inject S (toFin t))))
+lift {m} {n} {S} {T} {U} {V} f =
+  inject V ∘ toFin ∘ f ∘ inject S ∘ toFin
 
 coerce : ∀ {n} {S T : Type n} → ⟦ S ⟧ → ⟦ T ⟧
 coerce {S = S} s = lift (id {A = ⟦ S ⟧}) s
@@ -175,7 +175,7 @@ Thanks to our lemmas and careful attention to which definitions we pattern match
 
 ## Deriving
 
-We started this post with the connection to `deriving` generic functions as in Haskell, and now we are here at last. The `coerce` function that we already have corresponds to what you might call something like deriving `Iso` in a language limited to finte types.
+We started this post with alluding to the connection to `deriving` generic functions as in Haskell, and now we are here at last. The `coerce` function that we already have corresponds to what you might call something like deriving `Iso` in a language limited to finte types.
 
 ```haskell
 _≟_ : ∀ {n} {F : Type n} → Decidable {A = ⟦ F ⟧} _≡_
@@ -188,11 +188,17 @@ enum : ∀ {n} (F : Type n) → Vec ⟦ F ⟧ n
 enum = tabulate ∘ inject
 ```
 
-`≟` and `enum` correspond to deriving `Eq` and `Enum`. An equivalent for deriving `Ord` via making use of the function `compare` would be a bit more involved because it return an `Ordering` type defined on `Fin`'s, and I haven't gotten around to attempting it yet. However, do notice that our `≟` gives us a proof of equality (rather than a boolean predicate), `enum` is assured to give us a vector of values whose length match the number of inhabitants, and `Ord` would give us back a proof of why something is `less`, `equal`, or `greater` (just like the already defined `Fin` version in the Agda standard library).
+`≟` and `enum` correspond to deriving `Eq` and `Enum`. An equivalent for deriving `Ord` via making use of the function `compare` would be a bit more involved because it return an `Ordering` type defined on `Fin`'s, and I haven't gotten around to attempting it yet. However, do notice that our `≟` gives us a proof of equality (rather than a coincidental boolean), `enum` is assured to give us a vector of values whose length matches the number of inhabitants, and `Ord` would give us back a proof of why something is `less`, `equal`, or `greater` (just like the already defined `Fin` version in the Agda standard library).
+
+## Dependent Types
+
+Viewing type isomorphisms in the setting above can be an educational way to see the connection to what is meant by "algebraic data types". However, when extended to dependent types I dare say it may be useful. Since dependent types can represent arbitrary constructive logical propositions (as per the Curry-Howard Isomorphism), a function like `coerce` amounts to a procedure to convert a _proof_ of one logical proposition to a proof of _another isomorphic_ logical proposition. Since (at least in the finite system presented here) type isomorphism gets calculated along with terms at compile time, one cool application would be making a type system or tactic system consider values of isomorphic types in the context when searching for proof inhabitance. Further, under the Curry-Howard lens one proof is as good as another, so which isomorphism we happen to use doesn't matter as much (whereas with non-dependent types we care much more about what values look like when passing through a given isomorphism bridge).
+
+Dependent pairs (`Σ`) and dependent functions (`Π`) may be understood as "big sum" and "big product" as seen in algebra. When you multiply two number like `2 * 3` you can think of it as `fold` of `+` (`sum`) over a homogenous list of twos of length three, i.e. `sum (2 ∷ 2 ∷ 2 ∷ []) ≡ 2 + 2 + 2`. Similarly, exponentiation like `2 ^ 3` can be interpreted as iterated multiplication (rather than addition), i.e. `product (2 ∷ 2 ∷ 2 ∷ []) ≡ 2 * 2 * 2`. Dependent types abstract out a function that may be applied to each element of a heterogeneous list of values. For example, you may remember expressions in math classes like `Σ i^2 as i goes from 0 to 3`. Here the function `λ i → i ^ 3` is the parameter and being sum'd across the list `0, 1, 2, 3`.
 
 ### TODOS
-* expand to dependent types
+* canonicity
+* mention W types up to a bound like depth n (same universe as OTT paper)
 * link to copumpinks stackoverflow answer
-* isomorphic types + curry howard = proofs 
 * link to type-isomorphisms repo
 * compare implicit approach to semiring solver + reflection
