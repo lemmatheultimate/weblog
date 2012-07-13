@@ -267,7 +267,7 @@ A cute use of `coerce` in this setting would be to get a value of `∃odd` from 
 
 ## Inductive Definitions
 
-Adding μ as defined in Conor's Reddit comment at the beginning of the article to this universe leads to positivity issues. However, W-types (an alternate way to get recursive types as seen in Martin-Löf's Type Theory) fit in quite neatly.
+Adding μ as defined in Conor's Reddit comment at the beginning of the article to this universe leads to positivity issues. However, W-types (an alternative way to get recursive types as seen in [Per Martin-Löf's Type Theory](http://intuitionistic.files.wordpress.com/2010/07/martin-lof-tt.pdf)) fit in quite neatly.
 
 ```haskell
 data W (S : Set) (T : S → Set) : Set where
@@ -278,11 +278,8 @@ El : Type → Set
 
 data Type where
   `⊥ `⊤ : Type
-  _`⊎_ _`×_ : (S T : Type) → Type
-  _`→_ : (S T : Type) → Type
-  `Σ : (S : Type)(T : El S → Type) → Type
-  `Π : (S : Type)(T : El S → Type) → Type
-  `W : (S : Type)(T : El S → Type) → Type
+  _`⊎_ _`×_ _`→_ : (S T : Type) → Type
+  `Σ `Π `W : (S : Type)(T : El S → Type) → Type
 
 El `⊥ = ⊥
 El `⊤ = ⊤
@@ -294,17 +291,13 @@ El (`Π S T) = (s : El S) → El (T s)
 El (`W S T) = W (El S) λ s → El (T s)
 ```
 
-At this point our (non-indexed) universe looks very much like what appears in Thorsten Altenkirch's and Conor McBride's [OTT paper](http://strictlypositive.org/ott.pdf) (indeed a brief scan of this paper inspired some this work as well). Trying to tackle the problem of isomorphisms in a universe of infinite types is beyond the scope of this post (I don't know if a total `coerce` for every iso even exists, but even just getting some of these would be useful). However, one could limit W-types to some finite bound such as all inhabitants up to some given depth. The advantage would be the ability to use _inductive definitions_ for types and propositions (e.g. `ℕ` or `even`), rather than the more verbose form of exhaustively specifying every case. However, I have not yet experimented very much in this area.
-
-## Adieu
-
-I hope to have at least wet your appetite to the fun that can be had with constructively definable isomorphisms between types. Even though we have only dealt with a finite universe, when `Σ`, `Π`, and something like `FinW` are added I think it becomes a fairly interesting universe to play in. The denotational semantics as a family of types indexed by the naturals also seems like a simple and modular way to discover, and _simply_ prove things about, finite isomorphic types. I think that this implicit style relying on canonicity is more elegant than the explicit approach of a separate proof object (and at the very least a more pragmatic way to get simpler proofs).
+At this point our (non-indexed) universe looks very much like what appears in Thorsten Altenkirch's and Conor McBride's [OTT paper](http://strictlypositive.org/ott.pdf) (indeed a brief scan of this paper inspired some this work as well). Trying to tackle the problem of isomorphisms in a universe of infinite types is beyond the scope of this post (I don't know if a total `coerce` for every iso exists, but even just getting some of these would be useful). However, one could limit W-types to some finite bound such as all inhabitants up to some given depth. The advantage would be the ability to use _inductive definitions_ for types and propositions (e.g. `ℕ` or `even`), rather than the more verbose form of exhaustively specifying every case. However, I have not yet experimented very much in this area.
 
 ## Future Work
 
-The obvious next steps are to explore the more interesting world of infinite types. I've started trying to expand the semiring type index `ℕ`to formally expressed polynomials in any number of variables `List (List ℕ)` (where list positions correspond to coefficients). It obviously does not capture all isomorphisms. For example (using just polynomials in one variable `List ℕ`), `μX. ⊤ ⊎ X` & `μX. ⊤ ⊎ ⊤ ⊎ X` become `1 ∷ 1 ∷ []` & `2 ∷ 1 ∷ []` respectively. However, isomorphisms for types due to basic properties such as associativity, symmetry, etc remain, e.g. `μX. ⊤ ⊎ X` & `μX. X ⊎ ⊤` both become `1 ∷ 1 ∷ []`... so it may be worth exploring a bit nonetheless.
+The obvious next steps are to explore the more interesting world of infinitely inhabited types. I've started trying to expand the semiring type index `ℕ`to formally expressed polynomials in any number of variables `List (List ℕ)` (where list positions correspond to coefficients). It obviously does not capture all isomorphisms. For example (using just polynomials in one variable `List ℕ`), `μX. ⊤ ⊎ X` & `μX. ⊤ ⊎ ⊤ ⊎ X` become `1 ∷ 1 ∷ []` & `2 ∷ 1 ∷ []` respectively. However, isomorphisms for types due to basic properties such as associativity, symmetry, etc remain, e.g. `μX. ⊤ ⊎ X` & `μX. X ⊎ ⊤` both become `1 ∷ 1 ∷ []`... so it may be worth exploring a bit nonetheless.
 
-After doing a little bit of surveying I've found the more serious attempts at cracking the type isomorphism problem listed below:
+After doing a little bit of surveying I've found some more serious attempts at cracking the recursive type isomorphism problem listed below:
 
 * [From High School to University Algebra - Thorsten Altenkirch](http://www.cs.nott.ac.uk/~txa/publ/unialg.pdf)
   * Extends Tarski's mathematical properties work to Dependent Types.
@@ -317,11 +310,16 @@ After doing a little bit of surveying I've found the more serious attempts at cr
 * [Isomorphism of Finitary Inductive Types - Christian Sattler](http://www.cs.nott.ac.uk/~cvs/iso-inductive-talk.pdf)
   * New and interesting work towards deciding isormophism based on the Power Series representation of types.
 
+## Adieu
+
+I hope to have at least wet your appetite to the fun that can be had with constructively definable isomorphisms between types. Even though we have only dealt with a finite universe, when `Σ`, `Π`, and something like `FinW` are added I think it becomes a fairly interesting universe to play in. The denotational semantics as a family of types indexed by the naturals also seems like a simple and modular way to discover, and _simply_ prove things about, finite isomorphic types. I think that this implicit style relying on canonicity is more elegant than the explicit approach of a separate proof object (and at the very least a more pragmatic way to get simpler proofs).
+
 ----------------------------------------------------------------------
 
-That's it for now, this was a post in a new experiment in collaborative formal methods / FP blogging. You can read more about it at [lemmatheultimate.com](http://lemmatheultimate.com). I hope for my own sanity that my future posts are not this long, so please do not be intimated from writing much smaller and free spirited entries.
+This was a post in a new experiment in collaborative formal methods / FP blogging. You can read more about it at [lemmatheultimate.com](http://lemmatheultimate.com). I hope for my own sanity that my future posts are not this long, so please do not be intimated away from writing much smaller and free spirited entries.
 
 ### TODOS
 * link to `→` universe
-* link to type-isomorphisms repo or html/agda included source
-
+* link to type-isomorphisms repo
+* html/agda included source
+* maybe syntactic sharing trick
