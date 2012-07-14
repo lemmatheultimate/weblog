@@ -1,4 +1,4 @@
-# Lemma ⊢ The Ultimate Weblog
+# Lemma The Ultimate ⊢ Weblog
 
 An experiment in using GitHub for collaborative blog authorship with posts themed broadly around functional programming with an emphasis on topics like verification, theorem proving, and mathematical properties (... also an obvious pun on the legendary [Lambda the Ultimate](http://lambda-the-ultimate.org/)).
 
