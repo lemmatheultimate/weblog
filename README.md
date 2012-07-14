@@ -4,7 +4,7 @@ An experiment in using GitHub for collaborative blog authorship with posts theme
 
 ## How Does It Work
 
-There isn't much too it. The minimalist approach was inspired by [Reginald's homoiconic blog](https://github.com/raganwald/homoiconic). To make a post, simply add a [Markdown](http://daringfireball.net/projects/markdown/) file under the directory stucture `year/month` (e.g. `2012/07/you-had-me-at-curry.md`).
+There isn't much too it. The minimalist approach was inspired by [Reginald's homoiconic blog](https://github.com/raganwald/homoiconic). To make a post, simply add a [Markdown](http://daringfireball.net/projects/markdown/) file in the directory `posts/` (e.g. `posts/you-had-me-at-curry.md`). If you have supplementary material such as source code, that can be put in a directory of the same name (e.g. `posts/you-had-me-at-curry/Curry.agda`).
 
 ## Why
 
