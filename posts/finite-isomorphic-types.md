@@ -1,6 +1,4 @@
-# WORK IN PROGRESS (please do not link to this)
-
-# Finite Isomorphic Types
+# Finite Isomorphic Types ([source code](https://github.com/lemmatheultimate/weblog/tree/master/posts/finite-isomorphic-types))
 
 ## Background
 
@@ -117,7 +115,7 @@ toFin {F = _`⊎_ {m = m} S T} [ inj₂ b ] = raise m (toFin b)
 toFin {F = S `× T} [ a , b ] = concat (toFin a) (toFin b)
 ```
 
-The `toFin` function allows us to transform a value of a type into into an element of a finite set of the same cardinality. Explaining it and subsequent functions in detail is beyond the scope of this post, but you can get a feel for how it operates (and/or look here for [the completed source](http://todo.com)). The disjoint union case translates a value to the world of finite sets where we raise a particularly positioned finite set element to a bigger finite set but still in the same position. In the finite set world, the cartesian product case combines two finite sets positions into a single one corresponding to their position in the multiplication of both set cardinalities.
+The `toFin` function allows us to transform a value of a type into into an element of a finite set of the same cardinality. Explaining it and subsequent functions in detail is beyond the scope of this post, but you can get a feel for how it operates (and/or look here at the [source code](https://github.com/lemmatheultimate/weblog/blob/master/posts/finite-isomorphic-types/FiniteIsomorphicTypes/Basic.agda)). The disjoint union case translates a value to the world of finite sets where we raise a particularly positioned finite set element to a bigger finite set but still in the same position. In the finite set world, the cartesian product case combines two finite sets positions into a single one corresponding to their position in the multiplication of both set cardinalities.
 
 ```haskell
 postulate
@@ -233,7 +231,7 @@ count (`Σ S T) = ∣Σ∣ (enum S) (λ s → count (T s))
 count (`Π S T) = ∣Π∣ (enum S) (λ s → count (T s))
 ```
 
-First off, let me add the disclaimer that I have only defined enum for the above in the [completed source](http://todo.com) for `Σ` (I've defined the case for `→` in a separate universe, and have not defined it yet for `Π`). Secondly, as I was working on this development I reverted to defining `count` explicitly rather than implicitly in the type family. There are less mutually defined definitions that way (such as `enum`, and `toFin` in the `→` universe), but I hope that converting everything back to the type family form would still work in the end.
+First off, let me add the disclaimer that I have only defined enum for the above in the [source code](https://github.com/lemmatheultimate/weblog/blob/master/posts/finite-isomorphic-types/FiniteIsomorphicTypes/DependentPair.agda) for `Σ` (I've defined the case for `→` in a separate universe, and have not defined it yet for `Π`). Secondly, as I was working on this development I reverted to defining `count` explicitly rather than implicitly in the type family. There are less mutually defined definitions that way (such as `enum`, and `toFin` in the `→` universe), but I hope that converting everything back to the type family form would still work in the end.
 
 The reason why we need the `enum` function is because the dependent constructor argument `(T : El S → Type)` sits behind a λ abstraction barrier. We cannot simply "count T", as the `T` _function_ may return a type of _different cardinality_ for every possible `S` it may analyze. While the `Σ` example above from mathematics used a uniform/parametric function `λ i → i * i`, it could have in fact analyzed every `i` and returned a different answer for each. In fact as I define the (domain restricted) `square` function in our formal language below a non-uniform definition is demonstrated.
 
@@ -317,9 +315,3 @@ I hope to have at least wet your appetite to the fun that can be had with constr
 ----------------------------------------------------------------------
 
 This was a post in a new experiment in collaborative formal methods / FP blogging. You can read more about it at [lemmatheultimate.com](http://lemmatheultimate.com). I hope for my own sanity that my future posts are not this long, so please do not be intimated away from writing much smaller and free spirited entries.
-
-### TODOS
-* link to `→` universe
-* link to type-isomorphisms repo
-* html/agda included source
-* maybe syntactic sharing trick
