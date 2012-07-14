@@ -310,7 +310,7 @@ After doing a little bit of surveying I've found some more serious attempts at c
 
 ## Adieu
 
-I hope to have at least wet your appetite to the fun that can be had with constructively definable isomorphisms between types. Even though we have only dealt with a finite universe, when `Σ`, `Π`, and something like `FinW` are added I think it becomes a fairly interesting universe to play in. The denotational semantics as a family of types indexed by the naturals also seems like a simple and modular way to discover, and _simply_ prove things about, finite isomorphic types. I think that this implicit style relying on canonicity is more elegant than the explicit approach of a separate proof object (and at the very least a more pragmatic way to get simpler proofs).
+I hope to have at least whet your appetite to the fun that can be had with constructively definable isomorphisms between types. Even though we have only dealt with a finite universe, when `Σ`, `Π`, and something like `FinW` are added I think it becomes a fairly interesting universe to play in. The denotational semantics as a family of types indexed by the naturals also seems like a simple and modular way to discover, and _simply_ prove things about, finite isomorphic types. I think that this implicit style relying on canonicity is more elegant than the explicit approach of a separate proof object (and at the very least a more pragmatic way to get simpler proofs).
 
 ----------------------------------------------------------------------
 
